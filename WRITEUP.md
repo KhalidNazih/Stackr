@@ -142,7 +142,15 @@ To block threats securely, Tetragon relies on the Linux Kernel's **LSM (Linux Se
 
 *(Note: Because this platform runs on Azure Kubernetes Service (AKS), the underlying Azure node images already have BPF LSM natively enabled and supported!)*
 
-#### B. Apply Enforcement Policies (LSM Hooks)
+#### B. Install Tetragon
+To install the latest release of the Tetragon Helm chart into your cluster:
+```bash
+helm repo add cilium https://helm.cilium.io
+helm repo update
+helm install tetragon cilium/tetragon -n kube-system
+```
+
+#### C. Apply Enforcement Policies (LSM Hooks)
 Because we are actively blocking threats, our Custom Resources (`TracingPolicy`) MUST use `lsmhooks` (e.g., `file_open` or `bprm_check`) instead of standard syscall kprobes.
 
 We have included pre-built enforcement policies in `BaseServices/base/security/tetragon/` that:
@@ -150,7 +158,7 @@ We have included pre-built enforcement policies in `BaseServices/base/security/t
 2. Block reading of sensitive files (`/etc/shadow`, K8s certs) using `matchBinaries` to target tools like `cat` and `less`.
 3. Include a `podSelector` to **exclude** admin debugging pods so administrators don't get permanently locked out of their own cluster!
 
-#### C. How to bypass Tetragon for Admin Debugging
+#### D. How to bypass Tetragon for Admin Debugging
 Because Tetragon runs in the kernel, it doesn't know *who* you are (it ignores Kubernetes RBAC). By default, it blocks **everyone**, including admins, from spawning shells in tenant pods. 
 
 To give admins a backdoor, the policies include a `podSelector`:
@@ -203,11 +211,6 @@ helm upgrade --install vault hashicorp/vault \
   --namespace admin \
   --create-namespace \
   --set "csi.enabled=true"
-
-# Install Tetragon (eBPF Runtime Security)
-helm repo add cilium https://helm.cilium.io
-helm repo update
-helm install tetragon cilium/tetragon -n kube-system
 ```
 
 ### 3. Deploy the Core Stack via Kustomize
