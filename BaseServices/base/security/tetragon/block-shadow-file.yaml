@@ -1,0 +1,31 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "lsm-file-open"
+spec:
+  podSelector:
+    matchExpressions:
+    - key: "role"
+      operator: "NotIn"
+      values: ["admin-debug", "core-system"]
+  lsmhooks:
+  - hook: "file_open"
+    args:
+      - index: 0
+        type: "file"
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/bin/cat"
+        - "/usr/bin/tail"
+        - "/usr/bin/less"
+      matchArgs:
+      - index: 0
+        operator: "Equal"
+        values:
+        - "/etc/passwd"
+        - "/etc/shadow"
+        - "/etc/kubernetes/pki/ca.crt"
+      matchActions:                
+       - action: Sigkill

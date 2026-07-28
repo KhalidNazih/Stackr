@@ -91,6 +91,8 @@ Finally, paste your copied **Client ID** and **Vault Name** into `BaseServices/b
 
 ---
 
+---
+
 ## 🔐 Phase 1: Secure Networking & Ingress (Tailscale + NGINX)
 
 Our security posture mandates that no services are exposed to the public internet. We use Tailscale to provide a private VPN into the cluster, and NGINX Ingress to route traffic.
@@ -129,7 +131,52 @@ Because all ingress traffic is completely private, you cannot access the cluster
 
 With the infrastructure and secure networking in place, you must deploy the "Core Foundation" (GitLab, Keycloak, OpenBao, Redis, Postgres, and the Platform API). All services are deployed as `ClusterIP` to prevent unauthorized cluster-internal access.
 
-### 1. Install Secrets Store CSI Driver & Vault Provider
+### 1. eBPF Runtime Security (Tetragon)
+
+To add active runtime security to the platform, we use **Tetragon** (an eBPF security observability and enforcement tool). 
+
+Because we did not deploy a heavy logging stack like Loki (to save CPU/RAM on our nodes), we are relying on Tetragon purely for **Active Enforcement (Blocking)** rather than historical observability. If a hacker breaches a pod, Tetragon instantly acts as an armed guard and kills the malicious process.
+
+#### A. Prerequisite: Enable BPF LSM
+To block threats securely, Tetragon relies on the Linux Kernel's **LSM (Linux Security Modules)** framework. If we use standard "kprobes", hackers can bypass policies using TOCTOU (Time-Of-Check to Time-Of-Use) race conditions.
+
+*(Note: Because this platform runs on Azure Kubernetes Service (AKS), the underlying Azure node images already have BPF LSM natively enabled and supported!)*
+
+#### B. Apply Enforcement Policies (LSM Hooks)
+Because we are actively blocking threats, our Custom Resources (`TracingPolicy`) MUST use `lsmhooks` (e.g., `file_open` or `bprm_check`) instead of standard syscall kprobes.
+
+We have included pre-built enforcement policies in `BaseServices/base/security/tetragon/` that:
+1. Block any execution of reverse shells (`/bin/bash`).
+2. Block reading of sensitive files (`/etc/shadow`, K8s certs) using `matchBinaries` to target tools like `cat` and `less`.
+3. Include a `podSelector` to **exclude** admin debugging pods so administrators don't get permanently locked out of their own cluster!
+
+#### C. How to bypass Tetragon for Admin Debugging
+Because Tetragon runs in the kernel, it doesn't know *who* you are (it ignores Kubernetes RBAC). By default, it blocks **everyone**, including admins, from spawning shells in tenant pods. 
+
+To give admins a backdoor, the policies include a `podSelector`:
+```yaml
+  podSelector:
+    matchExpressions:
+    - key: "role"
+      operator: "NotIn"
+      values: ["admin-debug", "core-system"]
+```
+*(Note: You can change the key `role` and the values `["admin-debug", "core-system"]` in the YAML files to match whatever labeling convention your organization uses!)*
+
+**⚠️ CRITICAL WARNING FOR THIS TUTORIAL:**
+Whenever you see a `kubectl exec` command in the following phases, you will notice that we must first temporarily apply this bypass label so Tetragon allows us to enter the pod:
+```bash
+# 1. Add the bypass label (requires Admin RBAC permissions)
+kubectl label pod my-app role=admin-debug --overwrite
+
+# 2. Enter the pod (Tetragon will now ignore you)
+kubectl exec -it my-app -- /bin/bash
+
+# 3. Remove the label when finished
+kubectl label pod my-app role-
+```
+
+### 2. Install Secrets Store CSI Driver & Vault Provider
 The Core Stack uses `SecretProviderClass` configurations (for Zero-Secret-on-Disk projection). You must install the CSI Driver and Vault Provider before applying Kustomize manifests.
 ```bash
 # Add Helm repositories
@@ -156,9 +203,14 @@ helm upgrade --install vault hashicorp/vault \
   --namespace admin \
   --create-namespace \
   --set "csi.enabled=true"
+
+# Install Tetragon (eBPF Runtime Security)
+helm repo add cilium https://helm.cilium.io
+helm repo update
+helm install tetragon cilium/tetragon -n kube-system
 ```
 
-### 2. Deploy the Core Stack via Kustomize
+### 3. Deploy the Core Stack via Kustomize
 Apply the `BaseServices` folder using the standard `admin` overlay to spin up your headless core architecture:
 ```bash
 kubectl apply -k BaseServices/overlays/admin
@@ -186,7 +238,9 @@ The platform uses NGINX Ingress combined with Tailscale and wildcard DNS via `ni
 1. Ensure your Tailscale VPN is active on your machine. Log in to your new GitLab (Default user: `root`).
    *Note: To retrieve your initial admin password, run:*
    ```bash
+   kubectl label pod -n admin -l app=gitlab role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/gitlab -- grep 'Password:' /etc/gitlab/initial_root_password
+   kubectl label pod -n admin -l app=gitlab role-
    ```
 2. Create a new project: `platform-gitops`.
 3. Push this repository to that project. **This is now your Source of Truth.**
@@ -275,19 +329,24 @@ OpenBao boots up "Sealed" by default on its first run. Because we wired it to Az
 
 1. **Initialize the Vault**:
    ```bash
+   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- bao operator init
+   kubectl label pod -n admin -l app=openbao role-
    ```
    **CRITICAL**: Save the output! You will receive several `Recovery Keys` and one `Initial Root Token`. Do not lose the Root Token.
 
 2. **Verify Auto-Unseal**: Check the status of your vault:
    ```bash
+   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- bao status
+   kubectl label pod -n admin -l app=openbao role-
    ```
    You should see `Sealed: false`. (If it is true, it means your Azure Key Vault connection is misconfigured).
 
 Once initialized, you must configure Vault to allow the Provisioner (Ansible) to write secrets automatically.
 1. **Open an interactive shell inside the OpenBao container**:
    ```bash
+   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- /bin/sh
    ```
 2. **Login to OpenBao** (run this inside the container shell):
@@ -305,6 +364,10 @@ Once initialized, you must configure Vault to allow the Provisioner (Ansible) to
    # Configure Auth to trust the cluster
    bao write auth/kubernetes/config \
        kubernetes_host="https://kubernetes.default.svc"
+
+   exit
+   # Back on your local machine, lock the pod again:
+   kubectl label pod -n admin -l app=openbao role-
    ```
 4. **Create the Provisioner and Platform Policies & Roles** (run these inside the container shell):
    ```bash
@@ -366,6 +429,7 @@ Login to OpenBao and write the `platform/api` secret:
 > **💡 TIP**: You can find your numeric `GITLAB_PROJECT_ID` on the project's home page in GitLab, right under the project name.
 
 ```bash
+kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
 kubectl exec -it -n admin deploy/openbao -- /bin/sh
 # Inside the pod:
 bao kv put secret/platform/api \
@@ -526,3 +590,4 @@ Now that your entire GitOps platform is successfully running headless, you can o
 Because you've already configured Keycloak and OpenBao, you already have the necessary `Client Secret` and `Kube Token` required to boot the frontend!
 
 👉 **[Click here to follow the Web UI Configuration Guide](WEBUI_SETUP.md)** to build the frontend image and apply the `admin_with_ui` overlay!
+
