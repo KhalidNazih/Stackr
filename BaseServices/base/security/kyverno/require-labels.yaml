@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-tenant-labels
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+            - kube-system
+            - kyverno
+            - admin
+      validate:
+        message: "The labels 'tenant-id' and 'cost-center' are required."
+        pattern:
+          metadata:
+            labels:
+              tenant-id: "?*"
+              cost-center: "?*"

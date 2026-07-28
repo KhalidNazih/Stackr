@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+            - kube-system
+            - kyverno
+            - admin
+      validate:
+        message: "Unknown image registry. You must use inetumregister.azurecr.io."
+        pattern:
+          spec:
+            containers:
+            - image: "inetumregister.azurecr.io/*"

@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-mounts
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-host-path
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+            - kube-system
+            - kyverno
+            - admin
+      validate:
+        message: "HostPath volumes are forbidden."
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"

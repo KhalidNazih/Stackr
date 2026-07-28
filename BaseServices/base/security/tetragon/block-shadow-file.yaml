@@ -8,11 +8,14 @@ spec:
     - key: "role"
       operator: "NotIn"
       values: ["admin-debug", "core-system"]
-  lsmhooks:
-  - hook: "file_open"
+  kprobes:
+  - call: "sys_openat"
+    syscall: true
     args:
       - index: 0
-        type: "file"
+        type: "int"
+      - index: 1
+        type: "string"
     selectors:
     - matchBinaries:
       - operator: "In"
@@ -20,8 +23,11 @@ spec:
         - "/usr/bin/cat"
         - "/usr/bin/tail"
         - "/usr/bin/less"
+        - "/bin/cat"
+        - "/bin/tail"
+        - "/bin/less"
       matchArgs:
-      - index: 0
+      - index: 1
         operator: "Equal"
         values:
         - "/etc/passwd"

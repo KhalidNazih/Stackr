@@ -23,7 +23,7 @@ resources:
   - services/openbao-svc.yaml
   - pvcs/openbao-pvc.yaml
   - security/tetragon/block-shadow-file.yaml
-  - security/tetragon/block-reverse-shells.yaml
+  - security/kyverno/
 
 configMapGenerator:
   - name: openbao-config

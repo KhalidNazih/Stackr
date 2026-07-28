@@ -137,10 +137,10 @@ To add active runtime security to the platform, we use **Tetragon** (an eBPF sec
 
 Because we did not deploy a heavy logging stack like Loki (to save CPU/RAM on our nodes), we are relying on Tetragon purely for **Active Enforcement (Blocking)** rather than historical observability. If a hacker breaches a pod, Tetragon instantly acts as an armed guard and kills the malicious process.
 
-#### A. Prerequisite: Enable BPF LSM
-To block threats securely, Tetragon relies on the Linux Kernel's **LSM (Linux Security Modules)** framework. If we use standard "kprobes", hackers can bypass policies using TOCTOU (Time-Of-Check to Time-Of-Use) race conditions.
+#### A. Apply Enforcement Policies (Kprobes)
+To actively block threats without requiring complex GRUB modifications on your AKS nodes, our Custom Resources (`TracingPolicy`) use standard `kprobes` (e.g., `sys_execve` or `sys_openat`). 
 
-*(Note: Because this platform runs on Azure Kubernetes Service (AKS), the underlying Azure node images already have BPF LSM natively enabled and supported!)*
+*(Note: While kprobes are universally supported on Azure AKS out of the box, they can technically be susceptible to TOCTOU (Time-Of-Check to Time-Of-Use) race conditions in highly sophisticated attacks. If your threat model strictly requires avoiding this, you must build a custom DaemonSet to inject `lsm=bpf` into your Azure node GRUB configs and switch these policies to use `lsmhooks`).*
 
 #### B. Install Tetragon
 To install the latest release of the Tetragon Helm chart into your cluster:
@@ -150,8 +150,8 @@ helm repo update
 helm install tetragon cilium/tetragon -n kube-system
 ```
 
-#### C. Apply Enforcement Policies (LSM Hooks)
-Because we are actively blocking threats, our Custom Resources (`TracingPolicy`) MUST use `lsmhooks` (e.g., `file_open` or `bprm_check`) instead of standard syscall kprobes.
+#### C. Custom Enforcement Policies
+Because we are actively blocking threats, our Custom Resources (`TracingPolicy`) are configured as follows:
 
 We have included pre-built enforcement policies in `BaseServices/base/security/tetragon/` that:
 1. Block any execution of reverse shells (`/bin/bash`).
@@ -184,7 +184,26 @@ kubectl exec -it my-app -- /bin/bash
 kubectl label pod my-app role-
 ```
 
-### 2. Install Secrets Store CSI Driver & Vault Provider
+### 2. Admission Control (Kyverno)
+
+While Tetragon protects the kernel at runtime, **Kyverno** acts as the front-door bouncer for the Kubernetes API. Before any developer (or CI/CD pipeline) is allowed to deploy a Pod into the cluster, Kyverno scans the manifest to ensure it complies with our strict Multi-Tenant security baseline.
+
+#### A. Install Kyverno
+To install Kyverno using Helm:
+```bash
+helm repo add kyverno https://kyverno.github.io/kyverno/
+helm repo update
+helm install kyverno kyverno/kyverno -n kyverno --create-namespace
+```
+
+#### B. The Multi-Tenant Security Baseline
+We have included a bundle of 7 strict `ClusterPolicy` rules in `BaseServices/base/security/kyverno/` that ArgoCD will automatically deploy. These policies actively block developers if they bypass security:
+1. **Supply Chain Security**: Blocks any images not pulled from our private Azure Container Registry (`restrict-image-registries.yaml`), and forces strict version pinning by blocking the `:latest` tag (`disallow-latest-tag.yaml`).
+2. **Pod Security Standards**: Blocks `privileged: true`, blocks `hostPath` mounts, and enforces `runAsNonRoot: true` so containers cannot break out into the AKS host node.
+3. **Noisy Neighbor Protection**: Forces all pods to explicitly define CPU and Memory `requests` and `limits` so one tenant cannot consume all node resources (`require-resource-limits.yaml`).
+4. **Billing Traceability**: Mandates that every deployment includes strict `tenant-id` and `cost-center` metadata labels (`require-labels.yaml`).
+
+### 3. Install Secrets Store CSI Driver & Vault Provider
 The Core Stack uses `SecretProviderClass` configurations (for Zero-Secret-on-Disk projection). You must install the CSI Driver and Vault Provider before applying Kustomize manifests.
 ```bash
 # Add Helm repositories
