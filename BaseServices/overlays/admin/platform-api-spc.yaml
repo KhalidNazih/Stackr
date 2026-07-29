@@ -62,3 +62,6 @@ spec:
       - objectName: "API_SECRET_KEY"
         secretPath: "secret/data/platform/api"
         secretKey: "API_SECRET_KEY"
+      - objectName: "GITHUB_MODELS_TOKEN"
+        secretPath: "secret/data/platform/api"
+        secretKey: "GITHUB_MODELS_TOKEN"
