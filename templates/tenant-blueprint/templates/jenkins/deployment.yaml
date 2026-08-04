@@ -3,22 +3,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.tenant_id }}-jenkins
+  labels:
+    tenant-id: {{ .Values.tenant_id }}
+    cost-center: {{ .Values.cost_center | default "default" }}
 spec:
   replicas: {{ .Values.services.jenkins.replicas | default 1 }}
   selector: { matchLabels: { app: jenkins, tenant: {{ .Values.tenant_id }} } }
   template:
-    metadata: { labels: { app: jenkins, tenant: {{ .Values.tenant_id }} } }
+    metadata:
+      labels:
+        app: jenkins
+        tenant: {{ .Values.tenant_id }}
+        tenant-id: {{ .Values.tenant_id }}
+        cost-center: {{ .Values.cost_center | default "default" }}
     spec:
-      initContainers:
-      - name: volume-mount-hack
-        image: busybox
-        command: ["sh", "-c", "chown -R 1000:1000 /var/jenkins_home"]
-        volumeMounts:
-        - name: jenkins-data
-          mountPath: /var/jenkins_home
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: jenkins
         image: "khalidxx/jenkins_master:v1.0-oidc"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports: [{ containerPort: 8080 }]
         env:
         - name: CASC_JENKINS_CONFIG

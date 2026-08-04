@@ -19,6 +19,9 @@ spec:
             - kube-system
             - kyverno
             - admin
+            - tailscale
+            - ingress-basic
+            - argocd
       validate:
         message: "You cannot use the ':latest' tag! You must specify an exact version (e.g., :v2)."
         pattern:

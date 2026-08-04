@@ -3,15 +3,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.tenant_id }}-postgresql
+  labels:
+    tenant-id: {{ .Values.tenant_id }}
+    cost-center: {{ .Values.cost_center | default "default" }}
 spec:
   replicas: 1
   selector: { matchLabels: { app: postgresql, tenant: {{ .Values.tenant_id }} } }
   template:
-    metadata: { labels: { app: postgresql, tenant: {{ .Values.tenant_id }} } }
+    metadata:
+      labels:
+        app: postgresql
+        tenant: {{ .Values.tenant_id }}
+        tenant-id: {{ .Values.tenant_id }}
+        cost-center: {{ .Values.cost_center | default "default" }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
       containers:
       - name: postgresql
         image: postgres:13
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
         env:
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
@@ -34,22 +53,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.tenant_id }}-sonarqube
+  labels:
+    tenant-id: {{ .Values.tenant_id }}
+    cost-center: {{ .Values.cost_center | default "default" }}
 spec:
   replicas: {{ .Values.services.sonarqube.replicas | default 1 }}
   selector: { matchLabels: { app: sonarqube, tenant: {{ .Values.tenant_id }} } }
   template:
-    metadata: { labels: { app: sonarqube, tenant: {{ .Values.tenant_id }} } }
+    metadata:
+      labels:
+        app: sonarqube
+        tenant: {{ .Values.tenant_id }}
+        tenant-id: {{ .Values.tenant_id }}
+        cost-center: {{ .Values.cost_center | default "default" }}
     spec:
-      initContainers:
-      - name: volume-mount-hack
-        image: busybox
-        command: ["sh", "-c", "chown -R 1000:1000 /opt/sonarqube/data"]
-        volumeMounts:
-        - name: sonarqube-data
-          mountPath: /opt/sonarqube/data
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: sonarqube
         image: sonarqube:community
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
         ports: [{ containerPort: 9000 }]
         env:
         - name: SONAR_JDBC_URL

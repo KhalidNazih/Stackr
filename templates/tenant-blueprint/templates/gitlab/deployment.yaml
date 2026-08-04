@@ -3,15 +3,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.tenant_id }}-gitlab
+  labels:
+    tenant-id: {{ .Values.tenant_id }}
+    cost-center: {{ .Values.cost_center | default "default" }}
 spec:
   replicas: {{ .Values.services.gitlab.replicas | default 1 }}
   selector: { matchLabels: { app: gitlab, tenant: {{ .Values.tenant_id }} } }
   template:
-    metadata: { labels: { app: gitlab, tenant: {{ .Values.tenant_id }} } }
+    metadata:
+      labels:
+        app: gitlab
+        tenant: {{ .Values.tenant_id }}
+        tenant-id: {{ .Values.tenant_id }}
+        cost-center: {{ .Values.cost_center | default "default" }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: gitlab
         image: gitlab/gitlab-ce:latest
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |

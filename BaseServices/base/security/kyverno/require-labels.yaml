@@ -19,6 +19,9 @@ spec:
             - kube-system
             - kyverno
             - admin
+            - tailscale
+            - ingress-basic
+            - argocd
       validate:
         message: "The labels 'tenant-id' and 'cost-center' are required."
         pattern:

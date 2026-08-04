@@ -19,6 +19,9 @@ spec:
             - kube-system
             - kyverno
             - admin
+            - tailscale
+            - ingress-basic
+            - argocd
       validate:
         message: "CPU and Memory resource requests and limits are required."
         pattern:

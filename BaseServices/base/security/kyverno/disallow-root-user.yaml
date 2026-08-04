@@ -19,6 +19,9 @@ spec:
             - kube-system
             - kyverno
             - admin
+            - tailscale
+            - ingress-basic
+            - argocd
       validate:
         message: "Running as root is not allowed. Set runAsNonRoot: true."
         pattern:

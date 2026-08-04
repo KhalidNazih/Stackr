@@ -3,6 +3,9 @@ kind: Job
 metadata:
   name: {{ .Values.tenant_id }}-keycloak-provisioner
   namespace: admin
+  labels:
+    tenant-id: {{ .Values.tenant_id }}
+    cost-center: {{ .Values.cost_center | default "default" }}
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
@@ -12,9 +15,20 @@ spec:
     spec:
       serviceAccountName: {{ .Values.tenant_id }}-ansible-sa
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: ansible
         image: alpine/ansible:latest
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
         command: ["/bin/sh", "-c"]
         args:
           - |
