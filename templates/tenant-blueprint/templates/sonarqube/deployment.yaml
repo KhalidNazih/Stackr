@@ -23,7 +23,7 @@ spec:
         fsGroup: 999
       containers:
       - name: postgresql
-        image: postgres:13
+        image: <YOUR_PRIVATE_REGISTRY>/postgres/postgres:18.4
         resources:
           requests:
             cpu: 250m
@@ -73,7 +73,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: sonarqube
-        image: sonarqube:community
+        image: <YOUR_PRIVATE_REGISTRY>/sonarqube/sonarqube:26.7.0.124771-community
         resources:
           requests:
             cpu: 500m

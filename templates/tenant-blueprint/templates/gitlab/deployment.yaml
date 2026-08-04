@@ -23,7 +23,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: gitlab
-        image: gitlab/gitlab-ce:latest
+        image: <YOUR_PRIVATE_REGISTRY>/gitlab/gitlab-ce:19.0.5-ce.0
         resources:
           requests:
             cpu: 500m

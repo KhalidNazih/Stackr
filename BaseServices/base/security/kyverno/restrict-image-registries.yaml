@@ -23,8 +23,8 @@ spec:
             - ingress-basic
             - argocd
       validate:
-        message: "Unknown image registry. You must use inetumregister.azurecr.io."
+        message: "Unknown image registry. You must use <YOUR_PRIVATE_REGISTRY>."
         pattern:
           spec:
             containers:
-            - image: "inetumregister.azurecr.io/*"
+            - image: "<YOUR_PRIVATE_REGISTRY>/*"

@@ -518,6 +518,14 @@ Both Nexus (via `oauth2-proxy`) and Sonarqube consume OIDC secrets securely from
 
 ## 🏗️ Phase 8: Onboarding a Tenant (The Registry)
 
+> [!IMPORTANT]
+> **Blueprint Customization Required!**
+> Before you can successfully use this blueprint to onboard a tenant, you MUST do two things:
+> 1. **Update Kyverno**: Edit `BaseServices/base/security/kyverno/restrict-image-registries.yaml` and change `<YOUR_PRIVATE_REGISTRY>` to your own private container registry URL (e.g., `myregistry.azurecr.io`).
+> 2. **Push and Update Images**: The blueprint templates in `templates/tenant-blueprint/templates` use generic public images (like `gitlab-ce:latest`). You must pull these images, tag them, and push them to your private registry. Then, update the `deployment.yaml` files in the blueprint to point to your private registry (e.g., `<YOUR_REGISTRY>/gitlab-ce:19.0`).
+> 
+> If you don't do this, Kyverno will violently block your tenant's pods from starting!
+
 ### 1. Launch the Orchestrator
 Apply the ApplicationSet to start the "watch" on your registry:
 ```bash

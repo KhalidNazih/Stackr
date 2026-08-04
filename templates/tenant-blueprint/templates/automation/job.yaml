@@ -21,7 +21,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: ansible
-        image: alpine/ansible:latest
+        image: <YOUR_PRIVATE_REGISTRY>/ansible/ansible:2.21.0
         resources:
           requests:
             cpu: 100m

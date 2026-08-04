@@ -23,7 +23,7 @@ spec:
         fsGroup: 200
       containers:
       - name: oauth2-proxy
-        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        image: <YOUR_PRIVATE_REGISTRY>/oauth2-proxy/oauth2-proxy:v7.15.3
         resources:
           requests:
             cpu: 100m
@@ -67,7 +67,7 @@ spec:
               name: {{ .Values.platform.secrets.name | default (printf "%s-secrets" .Values.tenant_id) }}
               key: nexus-oauth2-proxy-cookie-secret
       - name: nexus
-        image: sonatype/nexus3:latest
+        image: <YOUR_PRIVATE_REGISTRY>/nexus/nexus3:3.94.1
         resources:
           requests:
             cpu: 500m
