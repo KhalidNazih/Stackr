@@ -150,39 +150,7 @@ helm repo update
 helm install tetragon cilium/tetragon -n kube-system
 ```
 
-#### C. Custom Enforcement Policies
-Because we are actively blocking threats, our Custom Resources (`TracingPolicy`) are configured as follows:
 
-We have included pre-built enforcement policies in `BaseServices/base/security/tetragon/` that:
-1. Block any execution of reverse shells (`/bin/bash`).
-2. Block reading of sensitive files (`/etc/shadow`, K8s certs) using `matchBinaries` to target tools like `cat` and `less`.
-3. Include a `podSelector` to **exclude** admin debugging pods so administrators don't get permanently locked out of their own cluster!
-
-#### D. How to bypass Tetragon for Admin Debugging
-Because Tetragon runs in the kernel, it doesn't know *who* you are (it ignores Kubernetes RBAC). By default, it blocks **everyone**, including admins, from spawning shells in tenant pods. 
-
-To give admins a backdoor, the policies include a `podSelector`:
-```yaml
-  podSelector:
-    matchExpressions:
-    - key: "role"
-      operator: "NotIn"
-      values: ["admin-debug", "core-system"]
-```
-*(Note: You can change the key `role` and the values `["admin-debug", "core-system"]` in the YAML files to match whatever labeling convention your organization uses!)*
-
-**⚠️ CRITICAL WARNING FOR THIS TUTORIAL:**
-Whenever you see a `kubectl exec` command in the following phases, you will notice that we must first temporarily apply this bypass label so Tetragon allows us to enter the pod:
-```bash
-# 1. Add the bypass label (requires Admin RBAC permissions)
-kubectl label pod my-app role=admin-debug --overwrite
-
-# 2. Enter the pod (Tetragon will now ignore you)
-kubectl exec -it my-app -- /bin/bash
-
-# 3. Remove the label when finished
-kubectl label pod my-app role-
-```
 
 ### 2. Admission Control (Kyverno)
 
@@ -232,7 +200,7 @@ helm upgrade --install vault hashicorp/vault \
   --set "csi.enabled=true"
 ```
 
-### 3. Deploy the Core Stack via Kustomize
+### 4. Deploy the Core Stack via Kustomize
 Apply the `BaseServices` folder using the standard `admin` overlay to spin up your headless core architecture:
 ```bash
 kubectl apply -k BaseServices/overlays/admin
@@ -243,7 +211,7 @@ kubectl apply -k BaseServices/overlays/admin
 
 
 
-### 3. Identify your Entry Points
+### 5. Identify your Entry Points
 The platform uses NGINX Ingress combined with Tailscale and wildcard DNS via `nip.io` for secure private routing. Assuming your Tailscale Ingress IP is `<YOUR_TAILSCALE_IP>`:
 
 **Take note of your Ingress URLs:**
@@ -260,9 +228,7 @@ The platform uses NGINX Ingress combined with Tailscale and wildcard DNS via `ni
 1. Ensure your Tailscale VPN is active on your machine. Log in to your new GitLab (Default user: `root`).
    *Note: To retrieve your initial admin password, run:*
    ```bash
-   kubectl label pod -n admin -l app=gitlab role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/gitlab -- grep 'Password:' /etc/gitlab/initial_root_password
-   kubectl label pod -n admin -l app=gitlab role-
    ```
 2. Create a new project: `platform-gitops`.
 3. Push this repository to that project. **This is now your Source of Truth.**
@@ -351,24 +317,19 @@ OpenBao boots up "Sealed" by default on its first run. Because we wired it to Az
 
 1. **Initialize the Vault**:
    ```bash
-   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- bao operator init
-   kubectl label pod -n admin -l app=openbao role-
    ```
    **CRITICAL**: Save the output! You will receive several `Recovery Keys` and one `Initial Root Token`. Do not lose the Root Token.
 
 2. **Verify Auto-Unseal**: Check the status of your vault:
    ```bash
-   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- bao status
-   kubectl label pod -n admin -l app=openbao role-
    ```
    You should see `Sealed: false`. (If it is true, it means your Azure Key Vault connection is misconfigured).
 
 Once initialized, you must configure Vault to allow the Provisioner (Ansible) to write secrets automatically.
 1. **Open an interactive shell inside the OpenBao container**:
    ```bash
-   kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
    kubectl exec -it -n admin deploy/openbao -- /bin/sh
    ```
 2. **Login to OpenBao** (run this inside the container shell):
@@ -388,8 +349,6 @@ Once initialized, you must configure Vault to allow the Provisioner (Ansible) to
        kubernetes_host="https://kubernetes.default.svc"
 
    exit
-   # Back on your local machine, lock the pod again:
-   kubectl label pod -n admin -l app=openbao role-
    ```
 4. **Create the Provisioner and Platform Policies & Roles** (run these inside the container shell):
    ```bash
@@ -412,7 +371,7 @@ Once initialized, you must configure Vault to allow the Provisioner (Ansible) to
        ttl=1h
    ```
 
-### 3. Keycloak: Realm, Scope, & Client Setup
+### 2. Keycloak: Realm, Scope, & Client Setup
 1. **Create the Realm**:
    1. Open the Keycloak Admin Console (http://keycloak.<YOUR_TAILSCALE_IP>.nip.io) and log in (default credentials: `admin` / `admin`).
    2. Click the realm dropdown in the top-left corner (initially labeled **master**).
@@ -451,7 +410,6 @@ Login to OpenBao and write the `platform/api` secret:
 > **💡 TIP**: You can find your numeric `GITLAB_PROJECT_ID` on the project's home page in GitLab, right under the project name.
 
 ```bash
-kubectl label pod -n admin -l app=openbao role=admin-debug --overwrite
 kubectl exec -it -n admin deploy/openbao -- /bin/sh
 # Inside the pod:
 bao kv put secret/platform/api \
