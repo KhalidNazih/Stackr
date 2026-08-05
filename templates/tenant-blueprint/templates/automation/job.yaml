@@ -15,13 +15,12 @@ spec:
     spec:
       serviceAccountName: {{ .Values.tenant_id }}-ansible-sa
       restartPolicy: Never
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        fsGroup: 1000
       containers:
       - name: ansible
         image: <YOUR_PRIVATE_REGISTRY>/ansible/ansible:2.21.0
+        securityContext:
+          runAsUser: 0
+          runAsNonRoot: false
         resources:
           requests:
             cpu: 100m

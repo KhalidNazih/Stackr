@@ -14,7 +14,7 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: jenkins
+              name: {{ .Values.tenant_id }}-jenkins
               port:
                 number: 8080
     {{- end }}
@@ -26,7 +26,7 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: gitlab
+              name: {{ .Values.tenant_id }}-gitlab
               port:
                 number: 80
     {{- end }}
@@ -38,9 +38,9 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: oauth2-proxy-nexus
+              name: {{ .Values.tenant_id }}-nexus
               port:
-                number: 4180
+                number: 80
     {{- end }}
     {{- if .Values.services.sonarqube.enabled }}
     - host: sonar-{{ .Values.tenant_id }}.{{ trimPrefix "http://" (trimPrefix "https://" .Values.platform.public_base_url) }}
