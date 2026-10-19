@@ -1,0 +1,43 @@
+name: 💡 Feature Request
+description: Propose a new feature, tool integration, or enhancement for Stackr
+title: "[FEATURE]: "
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome feature ideas and new toolchain integrations from the community!
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the platform does this feature proposal target?
+      options:
+        - "Developer Portal (apps/webui)"
+        - "Platform API (apps/backend)"
+        - "Base Platform Services (BaseServices/)"
+        - "Tenant Blueprint & Automation (templates/tenant-blueprint)"
+        - "Security Policies (Kyverno / Tetragon)"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement / Motivation
+      description: Is your feature request related to a specific problem or company workflow?
+      placeholder: "e.g., Our engineering team wants to provision Grafana dashboards alongside Jenkins for every tenant."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution / Design
+      description: Describe your proposed solution or architecture changes.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative approaches or workarounds?

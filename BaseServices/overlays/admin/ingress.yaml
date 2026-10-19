@@ -16,6 +16,16 @@ spec:
             name: platform-api-svc
             port:
               number: 8000
+  - host: platform-api.<YOUR_TAILSCALE_IP>.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: platform-api-svc
+            port:
+              number: 8000
   - host: keycloak.<YOUR_TAILSCALE_IP>.nip.io
     http:
       paths:

@@ -15,7 +15,7 @@ spec:
       serviceAccountName: platform-api-sa
       containers:
       - name: api
-        image: <YOUR_ACR_NAME>.azurecr.io/stackr/backend/stackr-backend:v2
+        image: <YOUR_PRIVATE_REGISTRY>/platform/backend:latest
         command: ["/bin/sh", "-c"]
         args:
           - |

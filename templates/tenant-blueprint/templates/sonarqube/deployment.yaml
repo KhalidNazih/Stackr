@@ -23,7 +23,7 @@ spec:
         fsGroup: 999
       containers:
       - name: postgresql
-        image: <YOUR_PRIVATE_REGISTRY>/postgres/postgres:18.4
+        image: <YOUR_PRIVATE_REGISTRY>/postgres/postgres:16-alpine
         resources:
           requests:
             cpu: 250m

@@ -10,7 +10,7 @@ The platform is deployed securely with zero public exposure, relying entirely on
 
 You must provision an AKS cluster and an Azure Container Registry (ACR) to host our internal backend platform images. 
 
-Below is the manual configuration applied via the Azure Portal. *(Note: If you want an automated way to provision the infrastructure, use the Terraform file located in the `terraform/` directory of this repository!)*
+Below is the step-by-step configuration applied via the Azure Portal.
 
 ### 1. The Core Infrastructure
 
@@ -58,8 +58,12 @@ Create an ACR to store your custom container images (e.g., `<YOUR_ACR_NAME>.azur
 Attach the ACR to the AKS cluster so the cluster can pull images securely without manual Docker logins.
 
 
-### 4. Push Platform API to ACR
-Build and push your backend platform image to the registry (e.g., `<YOUR_ACR_NAME>.azurecr.io/platform/backend/platform-api`).
+### 4. Build & Push Platform API to Registry
+Build and push your backend platform image from the `backend/` directory:
+```bash
+docker build -t <YOUR_PRIVATE_REGISTRY>/platform/backend:latest ./backend
+docker push <YOUR_PRIVATE_REGISTRY>/platform/backend:latest
+```
 
 
 Run the following command to authenticate to your newly provisioned AKS cluster locally:
@@ -476,13 +480,17 @@ Both Nexus (via `oauth2-proxy`) and Sonarqube consume OIDC secrets securely from
 
 ## 🏗️ Phase 8: Onboarding a Tenant (The Registry)
 
-> [!IMPORTANT]
-> **Blueprint Customization Required!**
-> Before you can successfully use this blueprint to onboard a tenant, you MUST do two things:
-> 1. **Update Kyverno**: Edit `BaseServices/base/security/kyverno/restrict-image-registries.yaml` and change `<YOUR_PRIVATE_REGISTRY>` to your own private container registry URL (e.g., `myregistry.azurecr.io`).
-> 2. **Push and Update Images**: The blueprint templates in `templates/tenant-blueprint/templates` use generic public images (like `gitlab-ce:latest`). You must pull these images, tag them, and push them to your private registry. Then, update the `deployment.yaml` files in the blueprint to point to your private registry (e.g., `<YOUR_REGISTRY>/gitlab-ce:19.0`).
-> 
-> If you don't do this, Kyverno will violently block your tenant's pods from starting!
+> [!TIP]
+> **Automated Configuration Script:**
+> Instead of manually editing files across the repository, you can simply run:
+> ```bash
+> bash configure.sh
+> ```
+> This script will prompt you for your Tailscale IP, private registry domain, and GitLab group, and automatically substitute all placeholders.
+>
+> **Jenkins Master Image:**
+> You can pull the preconfigured Jenkins master image directly from Docker Hub: `docker pull khalidxx/jenkins_master:<tag>`, tag it for your ACR, and push it.
+
 
 ### 1. Launch the Orchestrator
 Apply the ApplicationSet to start the "watch" on your registry:
@@ -573,9 +581,158 @@ git push origin main
 
 ## 🌐 Phase 9: Deploying the Developer Portal (Optional)
 
-Now that your entire GitOps platform is successfully running headless, you can optionally deploy the **Stackr Web UI**. 
+Now that your entire GitOps platform is successfully running headless, you can optionally deploy the **Stackr Developer Portal (Next.js Web UI)** to provide your engineering teams with a self-service visual interface.
 
-Because you've already configured Keycloak and OpenBao, you already have the necessary `Client Secret` and `Kube Token` required to boot the frontend!
+> **💡 Note:** This phase is completely **optional**. The platform runs 100% via Git commits (headless). Only follow this section if you want to deploy the visual web portal!
+>
+> You should only follow this phase **after completing Phase 1 through Phase 8**, so that your Keycloak, GitLab, and Kubernetes tokens are already generated and active.
 
-👉 **[Click here to follow the Web UI Configuration Guide](WEBUI_SETUP.md)** to build the frontend image and apply the `admin_with_ui` overlay!
+---
+
+### 1. Navigate to the Frontend Directory
+
+The Developer Portal Next.js source code is included directly in this repository in the `apps/webui/` directory:
+
+```bash
+cd apps/webui
+```
+
+---
+
+### 2. Prepare Client-Side Variables (.env.production)
+
+Because Next.js runs in the user's browser, the public URLs must be injected into the static JavaScript at **build time**. 
+
+In `apps/webui/`, create a `.env.production` file configured with your Tailscale IP:
+
+```env
+# ─────────────────────────────────────────────────────────────────────────────
+# Stackr Platform — Environment Variables (Production / AKS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+NEXT_PUBLIC_APP_URL=http://platform.<YOUR_TAILSCALE_IP>.nip.io
+NEXT_PUBLIC_APP_ENV=production
+
+# Public URL used by the browser for SSO redirects
+NEXT_PUBLIC_KEYCLOAK_URL=http://keycloak.<YOUR_TAILSCALE_IP>.nip.io
+NEXT_PUBLIC_KEYCLOAK_REALM=Devsecops_Platform_Users
+NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=stackr-plus
+
+# GitLab Admin (Central Source of Truth)
+NEXT_PUBLIC_GITLAB_URL=http://gitlab.<YOUR_TAILSCALE_IP>.nip.io
+GITLAB_GROUP=root
+GITLAB_TENANT_REPO=platform-gitops
+GITLAB_REGISTRY_PATH=registry
+GITLAB_DEFAULT_BRANCH=main
+
+# Argo CD
+NEXT_PUBLIC_ARGOCD_URL=http://argocd.<YOUR_TAILSCALE_IP>.nip.io
+
+# Cluster Base URL (per-tenant tool links)
+NEXT_PUBLIC_CLUSTER_BASE_URL=http://<YOUR_TAILSCALE_IP>.nip.io
+
+# FastAPI Backend (Must be /backend to use the Next.js API Proxy)
+NEXT_PUBLIC_API_URL=/backend
+```
+
+> **⚠️ CRITICAL: API Proxy Configuration**
+> The `NEXT_PUBLIC_API_URL` must be set to `/backend`. This ensures the browser sends API requests through the Next.js internal proxy (`app/backend/[...path]/route.ts`), which is necessary to forward Keycloak authentication cookies securely and avoid CORS issues. The internal proxy will then forward the traffic to the cluster-internal `BACKEND_URL` (configured in step 4).
+
+---
+
+### 3. Build and Push the Frontend Docker Image
+
+With your `.env.production` file ready, build the image and push it to your private container registry:
+
+```bash
+# Build the image
+docker build -t <YOUR_PRIVATE_REGISTRY>/platform/frontend:latest .
+
+# Authenticate with your registry (e.g. Azure ACR)
+az acr login --name <YOUR_REGISTRY_NAME>
+
+# Push to your registry
+docker push <YOUR_PRIVATE_REGISTRY>/platform/frontend:latest
+```
+
+---
+
+### 4. Inject Server-Side Secrets
+
+Next.js handles secure tokens strictly on the server-side so they are never exposed to the browser. You must inject your secrets into the Kubernetes deployment manifest before applying it.
+
+Open `BaseServices/overlays/admin_with_ui/webui.yaml` and update the following:
+
+1. **`KEYCLOAK_CLIENT_SECRET`**: Paste your Keycloak Client Secret (from Phase 5).
+2. **`KUBE_TOKEN`**: Paste your Kubernetes Service Account Token (from Phase 6).
+
+```yaml
+          env:
+            - name: KEYCLOAK_INTERNAL_URL
+              value: "http://keycloak.admin:8080"
+            - name: BACKEND_URL
+              value: "http://platform-api-svc.admin:8000"
+            - name: KEYCLOAK_CLIENT_SECRET
+              value: "YOUR_ACTUAL_KEYCLOAK_SECRET"
+            - name: KUBE_TOKEN
+              value: "YOUR_ACTUAL_KUBE_TOKEN"
+            - name: NEXTAUTH_URL
+              value: "http://platform.<YOUR_TAILSCALE_IP>.nip.io"
+            - name: AUTH_URL
+              value: "http://platform.<YOUR_TAILSCALE_IP>.nip.io"
+            - name: AUTH_TRUST_HOST
+              value: "true"
+```
+
+---
+
+### 5. Update the Tailscale Ingress Rule
+
+Open `BaseServices/overlays/admin_with_ui/webui-ingress.yaml` and verify your Tailscale IP:
+
+```yaml
+  - host: platform.<YOUR_TAILSCALE_IP>.nip.io
+```
+
+*(Note: `bash configure.sh` can also update this automatically).*
+
+---
+
+### 6. Deploy the Developer Portal Overlay
+
+From the root of your GitOps repository:
+
+```bash
+kubectl apply -k BaseServices/overlays/admin_with_ui
+```
+
+Your Developer Portal is now live and accessible over your private VPN at `http://platform.<YOUR_TAILSCALE_IP>.nip.io`.
+
+---
+
+### 7. Promote Your First Administrator
+
+By default, any user who registers in Keycloak and logs into the Developer Portal will be assigned the `tenant_user` role. To access the **Admin Center** and manage the platform, promote your first account directly in the PostgreSQL database:
+
+```bash
+kubectl exec -n admin deploy/postgres -- psql -U stackr -d stackr_platform -c "INSERT INTO platform_users (id, email, role, can_manage_projects, enabled, name) VALUES (gen_random_uuid(), 'YOUR_EMAIL@EXAMPLE.COM', 'admin', true, true, 'Platform Admin') ON CONFLICT (email) DO UPDATE SET role = 'admin';"
+```
+
+After running this command, refresh the Web UI to activate Administrator privileges.
+
+---
+
+### 8. Grant Users API Access (Fix Keycloak 403 Forbidden)
+
+If users encounter a 403 Forbidden error when fetching the user list to assign project team members:
+
+1. Open the Keycloak Admin Console (`http://keycloak.<YOUR_TAILSCALE_IP>.nip.io`).
+2. Navigate to the `Devsecops_Platform_Users` realm.
+3. Under **Manage**, click on **Realm roles**.
+4. Click on `default-roles-devsecops_platform_users`.
+5. Click **Role mapping** (or Associated roles) -> **Assign role**.
+6. Switch dropdown to **Filter by clients**.
+7. Search for `realm-management` and check **`view-users`**.
+8. Click **Assign**.
+
 

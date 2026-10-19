@@ -35,7 +35,7 @@ spec:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
             external_url 'http://git-{{ .Values.tenant_id }}.{{ trimPrefix "http://" (trimPrefix "https://" .Values.platform.public_base_url) }}'
-            gitlab_rails['initial_root_password'] = '{{ .Values.platform.secrets.data.gitlab_root_password }}'
+            gitlab_rails['initial_root_password'] = '{{ dig "platform" "secrets" "data" "gitlab_root_password" "ChangeMeRoot123!" .Values }}'
             
             # OIDC Configuration
             gitlab_rails['omniauth_enabled'] = true

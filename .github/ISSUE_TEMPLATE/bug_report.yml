@@ -1,0 +1,60 @@
+name: 🐛 Bug Report
+description: Create a report to help us fix a bug or issue in Stackr
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please fill out the sections below to help us diagnose and resolve the bug quickly.
+  - type: input
+    id: version
+    attributes:
+      label: Stackr Version / Commit Hash
+      description: What version or Git commit of Stackr are you running?
+      placeholder: "e.g., main @ 7bf8a3f"
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment-mode
+    attributes:
+      label: Deployment Mode
+      description: Which mode of Stackr is affected?
+      options:
+        - "Mode 1: Headless GitOps Core (BaseServices/overlays/admin)"
+        - "Mode 2: Full IDP (+ Web UI Developer Portal)"
+        - "Tenant Blueprint (ArgoCD / Helm)"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Kubernetes Environment
+      description: Where is your Kubernetes cluster running?
+      placeholder: "e.g., Azure AKS v1.30, Kind v0.23, K3s"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps to reproduce the behavior.
+      placeholder: |
+        1. Deploy overlay with 'kubectl apply -k ...'
+        2. Create tenant 'registry/my-tenant.yaml'
+        3. See error in pod logs
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs / Manifests
+      description: Please copy and paste any relevant pod logs (`kubectl logs`) or describe outputs (`kubectl describe`).
+      render: shell

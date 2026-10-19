@@ -15,12 +15,22 @@ spec:
       containers:
       - name: keycloak
         image: keycloak/keycloak:26.6
-        args: ["start-dev"]
+        args: ["start", "--http-enabled=true", "--hostname-strict=false", "--proxy-headers=xforwarded"]
         env:
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_METRICS_ENABLED
+          value: "true"
         - name: KEYCLOAK_ADMIN
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: platform-shared-secrets
+              key: keycloak-admin-username
         - name: KEYCLOAK_ADMIN_PASSWORD
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: platform-shared-secrets
+              key: keycloak-admin-password
         ports:
         - containerPort: 8080
         volumeMounts:

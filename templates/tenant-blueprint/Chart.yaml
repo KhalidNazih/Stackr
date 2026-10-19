@@ -1,3 +1,16 @@
 apiVersion: v2
 name: tenant-blueprint
 version: 0.1.0
+appVersion: "1.0.0"
+description: "Stackr Multi-Tenant Toolchain Blueprint Helm Chart (Jenkins, GitLab, Nexus, SonarQube)"
+type: application
+keywords:
+  - idp
+  - gitops
+  - multi-tenant
+  - argocd
+  - keycloak
+  - devsecops
+home: "https://github.com/KhalidNazih/Stackr"
+maintainers:
+  - name: "Stackr Platform Team"
