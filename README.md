@@ -1,30 +1,82 @@
 <div align="center">
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/b2711ebd-5533-4707-b1f4-4fcc5a0d9e48" />
 
+<img width="260" alt="Stackr Platform Logo" src="https://github.com/user-attachments/assets/b2711ebd-5533-4707-b1f4-4fcc5a0d9e48" />
 
-# 🚀 Stackr: Production-Grade Internal Developer Platform (IDP) & Multi-Tenant GitOps Engine
+# Stackr
 
-[![Release](https://img.shields.io/badge/Release-v0.9.0--blueprint-orange.svg)](https://github.com/KhalidNazih/Stackr/releases)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-AKS-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg?logo=next.js&logoColor=white)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI%20(Python)-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![ArgoCD](https://img.shields.io/badge/GitOps-Argo%20CD-EF7B4D.svg?logo=argo&logoColor=white)](https://argo-cd.readthedocs.io/)
-[![Kyverno](https://img.shields.io/badge/Policy-Kyverno-0080FF.svg)](https://kyverno.io/)
-[![Tetragon](https://img.shields.io/badge/eBPF-Tetragon-E53935.svg)](https://tetragon.io/)
+### Modern Open-Source Internal Developer Platform (IDP) & Multi-Tenant GitOps Engine
+
+**Turn infrastructure into self-service.** Provision complete, isolated DevOps environments with enterprise SSO, private networking, and Zero-Secret-on-Disk security in under 90 seconds.
+
+<p align="center">
+  <a href="#-quickstart-guide">Quickstart</a> •
+  <a href="#-choose-your-deployment-mode">Deployment Modes</a> •
+  <a href="#-high-level-architecture">Architecture</a> •
+  <a href="./WRITEUP.md">Runbook (Phases 0–9)</a> •
+  <a href="./CONTRIBUTING.md">Contribute</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/KhalidNazih/Stackr/releases"><img src="https://img.shields.io/badge/Release-v0.9.0--blueprint-orange.svg?style=flat-square" alt="Release" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square" alt="License" /></a>
+  <a href="https://kubernetes.io/"><img src="https://img.shields.io/badge/Kubernetes-AKS-326CE5.svg?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes" /></a>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Frontend-Next.js%2014-black.svg?style=flat-square&logo=next.js&logoColor=white" alt="Next.js" /></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="https://argo-cd.readthedocs.io/"><img src="https://img.shields.io/badge/GitOps-Argo%20CD-EF7B4D.svg?style=flat-square&logo=argo&logoColor=white" alt="ArgoCD" /></a>
+  <a href="https://kyverno.io/"><img src="https://img.shields.io/badge/Policy-Kyverno-0080FF.svg?style=flat-square" alt="Kyverno" /></a>
+  <a href="https://tetragon.io/"><img src="https://img.shields.io/badge/eBPF-Tetragon-E53935.svg?style=flat-square" alt="Tetragon" /></a>
+</p>
+
+</div>
+
+---
 
 > [!NOTE]
-> **Open-Source Blueprint Notice (v0.9.0):**  
-> Stackr is currently optimized for Kubernetes clusters running on Azure with Azure Key Vault auto-unseal and Tailscale private ingress. Multi-cloud (AWS/GCP) and local Kind setups are on the roadmap for v1.0.
+> **Open-Source Architectural Blueprint (v0.9.0):**  
+> Stackr is currently optimized for Kubernetes clusters running on Azure (AKS) with Azure Key Vault auto-unseal and Tailscale private mesh ingress. Multi-cloud (AWS/GCP) and local sandbox setups are scheduled for v1.0.
 
-**Stackr** is a self-service **Internal Developer Platform (IDP)** and **GitOps Automation Engine** designed for modern engineering organizations. It empowers development teams to provision isolated multi-tenant environments with enterprise DevOps toolchains (**GitLab**, **Jenkins**, **Nexus**, **SonarQube**) via a visual Developer Portal or purely declarative Git commits.
+---
 
-Built with a strict **"Security-First"** posture:
-- **Zero-Secret-on-Disk (ZSoD)**: Secrets exist exclusively in pod RAM (`tmpfs`), never written to disk or etcd.
-- **Identity Before Infrastructure (IBI)**: Dynamic Keycloak realm, group, and OIDC client configuration executes *before* any workload deploys.
-- **Zero Public Exposure**: Protected entirely behind private **Tailscale** VPN mesh networking and NGINX Ingress.
-- **Multi-Tenant Admission Governance**: Mandatory **Kyverno** admission policies enforce image provenance, non-root execution, and CPU/memory quotas.
-- **Kernel-Level Runtime Enforcement**: Real-time **Tetragon (eBPF)** probes terminate unauthorized processes and protect secret RAM mounts.
+## 🌟 Why Stackr?
+
+Most platform engineering setups require weeks of manual glue code, complex Backstage plugins, or expensive SaaS subscriptions. **Stackr is batteries-included**, providing an automated, closed-loop GitOps machine with an enterprise security posture built-in:
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>⚡ Self-Service in 90 Seconds</h4>
+      <p>Developers and managers can provision isolated environments with pre-configured tools (GitLab, Jenkins, Nexus, SonarQube) via an interactive Developer Portal or by committing 1 YAML file to Git.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h4>🔒 Zero-Secret-on-Disk (ZSoD)</h4>
+      <p>Secrets are projected directly from OpenBao into pod RAM (<code>tmpfs</code>) via the Secrets Store CSI Driver. Zero credentials are ever written to disk, Git, or plain etcd.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>🌐 Zero Public Attack Surface</h4>
+      <p>Protected entirely behind encrypted <b>Tailscale WireGuard</b> VPN mesh networking and NGINX Ingress. The platform and its workloads are completely invisible to the public internet.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h4>🛡️ Defense-in-Depth Governance</h4>
+      <p>Mandatory <b>Kyverno</b> admission controllers enforce pod security standards, while <b>Tetragon (eBPF)</b> kernel probes terminate unauthorized processes and protect secret mounts in real-time.</p>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🎯 Choose Your Deployment Mode
+
+Stackr features a **Headless-First** modular architecture. The Developer Portal (Web UI) is **completely optional**:
+
+| Capability | 🤖 Mode 1: Headless GitOps Engine (Core) | 🖥️ Mode 2: Full IDP (+ Developer Portal) |
+| :--- | :--- | :--- |
+| **Interface** | Pure Git commits to `registry/*.yaml` | Next.js 14 Self-Service Visual Portal |
+| **Kustomize Overlay** | `BaseServices/overlays/admin` | `BaseServices/overlays/admin_with_ui` |
+| **Frontend Pod** | ❌ **Not deployed** (Saves CPU & RAM) | ✅ `webui` Pod running in `admin` namespace |
+| **Backend API** | ✅ Platform synchronization engine | ✅ REST API powering the visual portal |
+| **Target Audience** | Platform Engineers, DevOps, CI/CD automation | Software Engineers, Product Managers, Leads |
 
 ---
 
@@ -38,17 +90,17 @@ flowchart TD
     end
 
     subgraph VPN["Private Ingress (Tailscale + NGINX)"]
-        Mesh["Tailscale VPN Mesh (*.nip.io)"]
+        Mesh["Tailscale WireGuard Mesh (*.nip.io)"]
     end
 
     subgraph Portal["Stackr Developer Portal (Optional UI)"]
-        UI["Next.js 14 Frontend (apps/webui/) [OPTIONAL]"]
+        UI["Next.js 14 Frontend (apps/webui/)"]
         API["FastAPI Backend (apps/backend/)"]
         DB[(PostgreSQL 16)]
         Cache[(Redis 7)]
     end
 
-    subgraph CorePlatform["Core Platform Services (admin namespace)"]
+    subgraph CorePlatform["Core Platform Foundation (admin namespace)"]
         GitLab["GitLab CE (platform-gitops Source of Truth)"]
         Keycloak["Keycloak SSO (IdP)"]
         OpenBao["OpenBao (Vault Secrets Engine)"]
@@ -57,14 +109,14 @@ flowchart TD
 
     subgraph Security["Policy & Runtime Security"]
         Kyverno["Kyverno Admission Controller"]
-        Tetragon["Tetragon eBPF Enforcement Engine"]
+        Tetragon["Tetragon eBPF Kernel Engine"]
     end
 
     subgraph Tenants["Tenant Workload Namespaces (Isolated)"]
         TenantNS["Tenant Namespace (e.g. customer-01-ns)"]
         Ansible["PreSync Ansible Job (Keycloak & OpenBao)"]
         CSI["Secrets Store CSI Driver (tmpfs /mnt/secrets)"]
-        Tools["Enterprise Toolchain (GitLab / Jenkins / Nexus / SonarQube)"]
+        Tools["Enterprise Toolchains (GitLab / Jenkins / Nexus / SonarQube)"]
     end
 
     Dev -->|Private Tailnet| Mesh
@@ -82,134 +134,80 @@ flowchart TD
     Kyverno -->|Validate Policies| TenantNS
     TenantNS --> Tools
     CSI -->|Mount Vault Secrets to RAM| Tools
-    Tetragon -.->|Active Kernel Monitoring| Tools
+    Tetragon -.->|Active Kernel Probes| Tools
 ```
 
 ---
 
-## 🎯 Choose Your Deployment Mode
+## 📦 Supported Toolchains & Services
 
-Stackr is built with a **Headless-First** modular architecture. The Developer Portal (Web UI) is **completely optional**:
+Stackr provisions dedicated, isolated instances for each tenant team:
 
-| Capability | Mode 1: Headless GitOps Engine (Core) | Mode 2: Full IDP (+ Developer Portal) |
+| Service | Category | Integration Highlights |
 | :--- | :--- | :--- |
-| **Interface** | Declarative Git commits to `registry/*.yaml` | Next.js Self-Service Web Portal |
-| **Overlay** | `BaseServices/overlays/admin` | `BaseServices/overlays/admin_with_ui` |
-| **Frontend Pod** | ❌ **Not deployed** (Saves CPU/RAM) | ✅ `webui` Pod running in `admin` |
-| **Backend API** | ✅ Runs platform synchronization | ✅ Powers the Developer Portal |
-| **Best For** | CI/CD automation, DevOps engineers | End-user self-service, engineering teams |
-
----
-
-## ✨ Key Features
-
-### 🖥️ Self-Service Developer Portal (`apps/webui/` & `apps/backend/`)
-* **Role-Aware Dashboard**: Real-time cluster health, resource utilization, security events, and GitOps sync statuses.
-* **Tenant Provisioning Wizard**: Interactive form allowing engineering managers to specify team access, enabled dev tools, and CPU/memory tiers. Automatically commits declarative `tenant.yaml` manifests to GitLab.
-* **Live Services Directory**: Real-time inspection of Kubernetes pods, service health, endpoints, and status metrics across all tenant namespaces.
-* **Admin Center**: Platform management portal for user role assignments, platform access control, and incident ticketing.
-
-### ⚙️ Declarative GitOps Engine (`BaseServices/`, `registry/`, `system/`, `templates/`)
-* **GitOps Registry**: The `registry/` directory serves as the definitive source of truth. Adding, modifying, or deleting a tenant YAML automatically triggers cluster reconciliation.
-* **Argo CD ApplicationSets**: Dynamic synthesis of tenant applications from Helm blueprints (`templates/tenant-blueprint`).
-* **Ansible PreSync Automation**: Automatically executes Keycloak API calls and Vault token exchanges before workloads are scheduled.
-* **Headless Capability**: The platform can run 100% headless via Git commits alone, without deploying the Developer Portal.
-
----
-
-## 📁 Repository Structure
-
-```
-stackr/
-├── apps/
-│   ├── webui/                     # Developer Portal Next.js 14 Web UI (OPTIONAL)
-│   │   ├── app/                   # Next.js App Router (Dashboard, Tenants, Services, Admin)
-│   │   ├── components/            # UI design system & branding components
-│   │   ├── lib/                   # Keycloak SSO, API proxy, and state management
-│   │   └── Dockerfile             # Multi-stage production container build
-│   └── backend/                   # Platform API Service (FastAPI)
-│       ├── api/                   # REST endpoints (tenants, services, auth, metrics)
-│       ├── config.py              # Pydantic environment & OpenBao CSI settings
-│       ├── main.py                # FastAPI application entrypoint
-│       └── Dockerfile             # Python 3.12 slim container build
-├── BaseServices/                  # Core platform infrastructure manifests
-│   ├── base/                      # Shared deployments: GitLab, Keycloak, OpenBao, Postgres, Redis
-│   │   ├── deployment/            # Service deployment specs
-│   │   ├── pvcs/                  # Persistent storage definitions
-│   │   ├── services/              # Internal ClusterIP definitions
-│   │   └── security/              # Kyverno ClusterPolicies & Tetragon TracingPolicies
-│   └── overlays/
-│       ├── admin/                 # Mode 1: Headless core platform deployment
-│       └── admin_with_ui/         # Mode 2: Complete platform with Developer Portal UI
-├── system/
-│   └── ApplicationSet.yaml        # Argo CD ApplicationSet watching registry/*.yaml
-├── templates/tenant-blueprint/    # Helm chart synthesizing tenant environments
-│   └── templates/
-│       ├── automation/            # PreSync Ansible playbook & Job for Keycloak/OpenBao
-│       ├── gitlab/                # Tenant GitLab CE instance with admin sync hook
-│       ├── jenkins/               # Tenant Jenkins instance (JCasC + CSI RAM secret mount)
-│       ├── nexus/                 # Tenant Nexus Repository Manager
-│       ├── sonarqube/             # Tenant SonarQube code quality server
-│       ├── ingress.yaml           # Tailscale ingress rules
-│       └── SecretProviderClass.yaml# Vault CSI secret projection
-├── registry/                      # Declarative tenant manifests (Source of Truth)
-│   └── customer-01.yaml           # Example tenant configuration
-├── configure.sh                   # Interactive environment setup script
-├── WRITEUP.md                     # Comprehensive end-to-end operational deployment guide (Phases 0–9)
-└── LICENSE                        # Apache 2.0 Open Source License
-```
+| **GitLab CE** | Source Control & CI/CD | Auto-provisioned with custom Ruby OIDC group sync hooks |
+| **Jenkins** | Automation Server | Pre-configured with Jenkins Configuration-as-Code (JCasC) + RAM secret injection |
+| **Nexus 3** | Artifact Repository | Integrated with `oauth2-proxy` sidecar for seamless Keycloak SSO |
+| **SonarQube** | Code Quality & Security | SAML SSO authentication with automated PostgreSQL backend |
+| **Custom Stack** | Pluggable | Extendable to Grafana, Harbor, Kafka, or databases via standard Helm templates |
 
 ---
 
 ## ⚡ Quickstart Guide
 
-### 1. Configure Your Environment
-Clone the repository and run the automated configuration script:
+### 1. Clone & Configure
+Clone the repository and run the interactive setup script:
 
 ```bash
 git clone https://github.com/KhalidNazih/Stackr.git
 cd Stackr
 bash configure.sh
 ```
+*The script prompts for your **Tailscale IP**, **Container Registry**, and **GitLab Group**, automatically replacing all environment placeholders across manifests.*
 
-The script will prompt for your **Tailscale IP**, **Container Registry**, and **GitLab Group**, automatically replacing all environment placeholders across manifests.
+---
 
-### 2. Deploy Core Platform (Headless)
-Build the platform backend and apply the base infrastructure via Kustomize:
+### 2. Deploy the Core Platform (Headless Mode)
+Build the platform backend and deploy the core infrastructure via Kustomize:
 
 ```bash
-# Build & push backend
+# 1. Build & push the backend API
 docker build -t <YOUR_PRIVATE_REGISTRY>/platform/backend:latest ./apps/backend
 docker push <YOUR_PRIVATE_REGISTRY>/platform/backend:latest
 
-# Deploy headless core
+# 2. Deploy headless core platform
 kubectl apply -k BaseServices/overlays/admin
 ```
 
-Follow **[WRITEUP.md](./WRITEUP.md)** for initial OpenBao Vault unsealing and Keycloak realm bootstrapping.
+> Follow **[WRITEUP.md](./WRITEUP.md)** for initial OpenBao unsealing and Keycloak realm bootstrapping.
 
-### 3. Deploy Developer Portal (Optional UI)
-If you wish to provide your teams with a visual UI instead of running purely headless:
+---
+
+### 3. Deploy the Developer Portal (Optional UI Mode)
+If your organization wants the self-service web interface:
 
 ```bash
-# Build & push frontend
+# 1. Build & push the frontend UI
 docker build -t <YOUR_PRIVATE_REGISTRY>/platform/frontend:latest ./apps/webui
 docker push <YOUR_PRIVATE_REGISTRY>/platform/frontend:latest
 
-# Deploy with UI overlay
+# 2. Apply the full UI overlay
 kubectl apply -k BaseServices/overlays/admin_with_ui
 ```
 
-For full client-side variable injection and server-side secret binding, see **Phase 9 in [WRITEUP.md](./WRITEUP.md)**.
+Your Developer Portal is now live on your private network at:  
+👉 `http://platform.<YOUR_TAILSCALE_IP>.nip.io`
 
-### 4. Onboard a Tenant
-Start the Argo CD tenant orchestrator:
+---
 
+### 4. Onboard a Tenant in 1 Step
+
+Start the ArgoCD tenant orchestrator:
 ```bash
 kubectl apply -f system/ApplicationSet.yaml
 ```
 
-To create a new tenant, simply commit a file in `registry/`:
+To provision a new team, simply commit a manifest in `registry/` (e.g. `registry/team-alpha.yaml`):
 
 ```yaml
 tenant_id: "team-alpha"
@@ -237,28 +235,73 @@ access:
   creator_email: "lead@example.com"
 ```
 
-Push the commit to GitLab. Argo CD and Ansible automatically handle Keycloak groups, Vault secret paths, and tenant toolchain provisioning.
+Push to GitLab. ArgoCD automatically generates the namespace, executes Keycloak SSO hooks, injects secrets, and launches the team's toolchains!
 
 ---
 
-## 🛡️ Security Baseline
+## 📁 Repository Structure
 
-| Layer | Implementation | Security Benefit |
-| :--- | :--- | :--- |
-| **Identity** | Keycloak OIDC/SAML | Centralized SSO, tenant RBAC, group claims |
-| **Secrets** | OpenBao + Secrets Store CSI | Zero secrets stored in etcd or git; projected to RAM (`tmpfs`) |
-| **Ingress** | Tailscale + NGINX | Zero public attack surface; encrypted wireguard VPN tunnel |
-| **Admission** | Kyverno ClusterPolicies | Blocks public images, enforces non-root, mandates resource limits |
-| **Kernel** | Tetragon eBPF | Active blocking of unauthorized binaries and FIM on `/mnt/secrets` |
+```
+Stackr/
+├── apps/
+│   ├── webui/                     # Next.js 14 Developer Portal (TailwindCSS, Framer Motion)
+│   └── backend/                   # FastAPI Python Platform Service (SQLAlchemy Async, Redis)
+├── BaseServices/                  # Core platform infrastructure manifests
+│   ├── base/                      # GitLab, Keycloak, OpenBao, Postgres, Redis, Security
+│   └── overlays/
+│       ├── admin/                 # Mode 1: Headless core platform deployment
+│       └── admin_with_ui/         # Mode 2: Complete platform with Developer Portal UI
+├── system/
+│   └── ApplicationSet.yaml        # Argo CD ApplicationSet watching registry/*.yaml
+├── templates/tenant-blueprint/    # Helm chart synthesizing tenant environments
+│   ├── Chart.yaml                 # Helm chart metadata
+│   ├── values.yaml                # Standard defaults for all tenant services
+│   └── templates/                 # Ansible automation, toolchain manifests, CSI classes
+├── registry/                      # Declarative tenant manifests (Source of Truth)
+│   └── customer-01.yaml           # Canonical example tenant configuration
+├── configure.sh                   # Interactive environment configuration script
+├── WRITEUP.md                     # Comprehensive operations runbook (Phases 0–9)
+├── CONTRIBUTING.md                # Guide for contributors & custom stack integrations
+└── LICENSE                        # Apache 2.0 Open Source License
+```
 
 ---
 
-## 📖 Complete Documentation
+## 📖 Complete Operational Runbook
 
-* **[WRITEUP.md](./WRITEUP.md)**: Comprehensive, step-by-step operations guide covering Phases 0 through 9 (Azure AKS initialization, Tailscale private ingress, Keycloak & OpenBao token configuration, tenant lifecycle, and optional Developer Portal deployment).
+The complete step-by-step production runbook is documented in **[WRITEUP.md](./WRITEUP.md)**:
+
+| Phase | Title | Description |
+| :---: | :--- | :--- |
+| **0** | **Cloud Infrastructure** | AKS cluster, ACR registry, and Key Vault setup |
+| **1** | **Secure Networking** | Private Tailscale VPN operator & NGINX Ingress |
+| **2** | **Core Bootstrap** | Deploying BaseServices with Kyverno & Tetragon eBPF |
+| **3** | **Source of Truth** | GitLab initialization & platform-gitops repository |
+| **4** | **The Brain** | Argo CD ApplicationSet controller & GitLab integration |
+| **5** | **The Foundation** | OpenBao auto-unseal & Keycloak OIDC realm setup |
+| **6** | **Secret Injection** | Zero-Secret-on-Disk token binding in OpenBao |
+| **7** | **Tenant Lifecycle** | Tool integration (GitLab, Jenkins CasC, Nexus, Sonar) |
+| **8** | **Tenant Onboarding** | Declarative registry onboarding and lifecycle |
+| **9** | **Developer Portal** | Optional Next.js visual portal deployment & admin setup |
+
+---
+
+## 🧩 Extending Stackr (Add Your Own Tools)
+
+Stackr is built to be extended. You can easily add **Grafana**, **Harbor**, **PostgreSQL**, **Kafka**, or custom company toolchains by following our step-by-step guide in **[CONTRIBUTING.md](./CONTRIBUTING.md#how-to-add-a-new-toolchain-to-the-tenant-blueprint)**.
+
+---
+
+## 🤝 Contributing & Community
+
+Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+* Read our **[Contributing Guidelines](./CONTRIBUTING.md)** to get started.
+* Review our **[Code of Conduct](./CODE_OF_CONDUCT.md)**.
+* Found a bug? Open an **[Issue](https://github.com/KhalidNazih/Stackr/issues)**.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [Apache License 2.0](./LICENSE).
+This project is licensed under the **Apache License 2.0** — see the [LICENSE](./LICENSE) file for details.
