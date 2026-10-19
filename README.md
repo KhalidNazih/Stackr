@@ -1,3 +1,7 @@
+<div align="center">
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/b2711ebd-5533-4707-b1f4-4fcc5a0d9e48" />
+
+
 # 🚀 Stackr: Production-Grade Internal Developer Platform (IDP) & Multi-Tenant GitOps Engine
 
 [![Release](https://img.shields.io/badge/Release-v0.9.0--blueprint-orange.svg)](https://github.com/KhalidNazih/Stackr/releases)
