@@ -1,7 +1,5 @@
 <div align="center">
 
-<img width="260" alt="Stackr Platform Logo" src="https://github.com/user-attachments/assets/b2711ebd-5533-4707-b1f4-4fcc5a0d9e48" />
-
 # Stackr
 
 ### Modern Open-Source Internal Developer Platform (IDP) & Multi-Tenant GitOps Engine
