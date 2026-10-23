@@ -1,6 +1,7 @@
 import {
   SiGitlab, SiJenkins, SiSonarqubeserver, SiSonatype,
-  SiPostgresql, SiRedis, SiFastapi, SiArgo, SiKubernetes, SiKeycloak
+  SiPostgresql, SiRedis, SiFastapi, SiArgo, SiKubernetes, SiKeycloak,
+  SiGrafana
 } from 'react-icons/si'
 import { Box, Lock } from 'lucide-react'
 import type { IconType } from 'react-icons'
@@ -46,6 +47,14 @@ export const SERVICE_META: Record<string, ServiceMeta> = {
     color: '#4E9BCD',
     bg: 'bg-[#EFF6FC]',
     ring: 'ring-[#4E9BCD]/20',
+  },
+  grafana: {
+    id: 'grafana',
+    name: 'Grafana',
+    Icon: SiGrafana,
+    color: '#F46800',
+    bg: 'bg-[#FFF4EB] dark:bg-orange-950/20',
+    ring: 'ring-[#F46800]/20',
   },
   openbao: {
     id: 'openbao',
@@ -141,6 +150,7 @@ export function ServiceIcon({
   else if (sLower.includes('jenkins')) matchedKey = 'jenkins'
   else if (sLower.includes('nexus')) matchedKey = 'nexus'
   else if (sLower.includes('sonar')) matchedKey = 'sonarqube'
+  else if (sLower.includes('grafana')) matchedKey = 'grafana'
   else if (sLower.includes('openbao') || sLower.includes('vault') || sLower.includes('bao')) matchedKey = 'openbao'
   else if (sLower.includes('postgres')) matchedKey = 'postgresql'
   else if (sLower.includes('redis')) matchedKey = 'redis'
@@ -170,6 +180,7 @@ export function ServiceIconInline({ service, size = 16 }: { service: string; siz
   else if (sLower.includes('jenkins')) matchedKey = 'jenkins'
   else if (sLower.includes('nexus')) matchedKey = 'nexus'
   else if (sLower.includes('sonar')) matchedKey = 'sonarqube'
+  else if (sLower.includes('grafana')) matchedKey = 'grafana'
   else if (sLower.includes('openbao') || sLower.includes('vault') || sLower.includes('bao')) matchedKey = 'openbao'
   else if (sLower.includes('postgres')) matchedKey = 'postgresql'
   else if (sLower.includes('redis')) matchedKey = 'redis'

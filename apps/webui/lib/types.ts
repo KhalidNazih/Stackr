@@ -3,6 +3,24 @@ export type EnvType = 'dev' | 'qa' | 'staging' | 'production'
 export type RequestStatus = 'pending' | 'approved' | 'rejected'
 export type UserRole = 'admin' | 'developer' | 'devops' | 'auditor' | 'readonly'
 
+export interface CatalogService {
+  id: string
+  name: string
+  category: string
+  desc: string
+  securityRating: number
+  estimatedCost: string
+  defaultEnabled: boolean
+  defaultReplicas: number
+  defaultSize: 'small' | 'medium' | 'heavy'
+  clientId?: string
+  resources: {
+    small: string
+    medium: string
+    heavy: string
+  }
+}
+
 export interface K8sPod {
   name: string
   namespace: string

@@ -106,8 +106,28 @@ If the tool has a web UI, add a routing rule to `templates/tenant-blueprint/temp
     {{- end }}
 ```
 
-### 4. Add UI Icon & Metadata (Optional)
-Register the tool in `apps/webui/components/icons/ServiceIcon.tsx` and the Tenant Wizard in `apps/webui/app/(platform)/tenants/create/page.tsx`.
+### 4. Enable in Developer Portal (Optional)
+Add an entry to `apps/webui/config/services-catalog.json`:
+```json
+{
+  "id": "<tool_name>",
+  "name": "My Tool",
+  "category": "Observability",
+  "desc": "Short description of what the tool does.",
+  "securityRating": 5,
+  "estimatedCost": "$15/mo",
+  "defaultEnabled": false,
+  "defaultReplicas": 1,
+  "defaultSize": "small",
+  "clientId": "<tool_name>",
+  "resources": {
+    "small": "1 CPU · 1 Gi",
+    "medium": "2 CPU · 2 Gi",
+    "heavy": "4 CPU · 4 Gi"
+  }
+}
+```
+The Developer Portal automatically renders the tool's card, sizing presets, replica controls, and catalog pricing! You can also optionally map an icon in `apps/webui/components/icons/ServiceIcon.tsx`.
 
 ---
 

@@ -14,6 +14,7 @@ import { useMe, filterVisibleTenants } from '@/lib/me-store'
 import { useTenants } from '@/lib/tenants-store'
 import { useT } from '@/lib/i18n/i18n-context'
 import { keycloakConfig, vaultConfig, argocdConfig, gitlabConfig } from '@/lib/config'
+import servicesCatalog from '@/config/services-catalog.json'
 
 export default function ServicesPage() {
   const { t, locale } = useT()
@@ -56,11 +57,14 @@ export default function ServicesPage() {
     const tenant = tenants.find(t => t.namespace === s.namespace)
     if (!tenant || !tenant.manifest) return null
     const manifest = tenant.manifest as any
-    let id = ''
-    if (s.name.includes('GitLab')) id = 'gitlab'
-    else if (s.name.includes('Jenkins')) id = 'jenkins'
-    else if (s.name.includes('Nexus')) id = 'nexus'
-    else if (s.name.includes('Sonar')) id = 'sonarqube'
+
+    const matchedCatalog = (servicesCatalog as any[]).find(
+      (c: any) =>
+        s.name.toLowerCase().includes(c.id.toLowerCase()) ||
+        s.name.toLowerCase().includes(c.name.toLowerCase()) ||
+        s.id.toLowerCase().includes(c.id.toLowerCase())
+    )
+    const id = matchedCatalog ? matchedCatalog.id : ''
     if (!id) return null
     
     const svcCfg = manifest.services?.[id]

@@ -1,0 +1,87 @@
+[
+  {
+    "id": "gitlab",
+    "name": "GitLab",
+    "category": "Source Control",
+    "desc": "Git repositories, CI/CD pipelines and code review.",
+    "securityRating": 5,
+    "estimatedCost": "$45/mo",
+    "defaultEnabled": true,
+    "defaultReplicas": 1,
+    "defaultSize": "medium",
+    "clientId": "Gitlab",
+    "resources": {
+      "small": "2 CPU · 4 Gi",
+      "medium": "4 CPU · 8 Gi",
+      "heavy": "8 CPU · 16 Gi"
+    }
+  },
+  {
+    "id": "jenkins",
+    "name": "Jenkins",
+    "category": "CI/CD",
+    "desc": "Automation server for continuous integration.",
+    "securityRating": 3,
+    "estimatedCost": "$20/mo",
+    "defaultEnabled": true,
+    "defaultReplicas": 1,
+    "defaultSize": "medium",
+    "clientId": "Jenkins",
+    "resources": {
+      "small": "1 CPU · 2 Gi",
+      "medium": "2 CPU · 4 Gi",
+      "heavy": "4 CPU · 8 Gi"
+    }
+  },
+  {
+    "id": "nexus",
+    "name": "Nexus",
+    "category": "Artifacts",
+    "desc": "Universal artifact repository and proxy manager.",
+    "securityRating": 4,
+    "estimatedCost": "$30/mo",
+    "defaultEnabled": true,
+    "defaultReplicas": 1,
+    "defaultSize": "medium",
+    "clientId": "nexus",
+    "resources": {
+      "small": "2 CPU · 4 Gi",
+      "medium": "4 CPU · 8 Gi",
+      "heavy": "8 CPU · 16 Gi"
+    }
+  },
+  {
+    "id": "sonarqube",
+    "name": "SonarQube",
+    "category": "Code Quality",
+    "desc": "Continuous code quality and security vulnerability detection.",
+    "securityRating": 5,
+    "estimatedCost": "$25/mo",
+    "defaultEnabled": true,
+    "defaultReplicas": 1,
+    "defaultSize": "medium",
+    "clientId": "sonarqube",
+    "resources": {
+      "small": "2 CPU · 4 Gi",
+      "medium": "4 CPU · 8 Gi",
+      "heavy": "8 CPU · 16 Gi"
+    }
+  },
+  {
+    "id": "grafana",
+    "name": "Grafana",
+    "category": "Observability",
+    "desc": "Real-time metrics dashboards, log visualization, and alerting.",
+    "securityRating": 5,
+    "estimatedCost": "$15/mo",
+    "defaultEnabled": false,
+    "defaultReplicas": 1,
+    "defaultSize": "small",
+    "clientId": "grafana",
+    "resources": {
+      "small": "1 CPU · 1 Gi",
+      "medium": "2 CPU · 2 Gi",
+      "heavy": "4 CPU · 4 Gi"
+    }
+  }
+]

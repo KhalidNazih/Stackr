@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { apiConfig } from './config'
 import type { PlatformService, K8sPod } from './types'
+import servicesCatalog from '@/config/services-catalog.json'
 
 interface ServicesState {
   services: PlatformService[]
@@ -9,10 +10,21 @@ interface ServicesState {
   fetchServices: (namespaces?: string[]) => Promise<void>
 }
 
+const CATALOG_ENTRIES: Record<string, Partial<PlatformService>> = Object.fromEntries(
+  servicesCatalog.map((s: any) => [
+    s.id,
+    {
+      name: s.name,
+      category: s.category,
+      description: s.desc,
+      securityRating: s.securityRating || 5,
+      estimatedCost: s.estimatedCost || '$20/mo',
+    }
+  ])
+)
+
 const SERVICE_META: Record<string, Partial<PlatformService>> = {
-  'gitlab': { name: 'GitLab', category: 'Source Control', description: 'Git repository management, CI/CD pipelines, and code review platform.', securityRating: 5, estimatedCost: '$45/mo' },
-  'jenkins': { name: 'Jenkins', category: 'CI/CD', description: 'Open-source automation server for continuous integration and delivery.', securityRating: 3, estimatedCost: '$20/mo' },
-  'nexus': { name: 'Nexus', category: 'Artifacts', description: 'Universal artifact repository manager for storing build artifacts.', securityRating: 4, estimatedCost: '$30/mo' },
+  ...CATALOG_ENTRIES,
   'sonar': { name: 'SonarQube', category: 'Code Quality', description: 'Continuous inspection of code quality and security vulnerability detection.', securityRating: 5, estimatedCost: '$25/mo' },
   'keycloak': { name: 'Keycloak', category: 'Identity & Access', description: 'Centralized OpenID Connect and OAuth2 Identity and Access Management.', securityRating: 5, estimatedCost: '$0/mo' },
   'openbao': { name: 'OpenBao', category: 'Security & Secrets', description: 'Open-source secret management and encryption service.', securityRating: 5, estimatedCost: '$0/mo' },

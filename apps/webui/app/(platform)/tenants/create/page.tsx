@@ -31,16 +31,23 @@ interface WizardState {
   developers?: string[]
 }
 
-const SERVICES = [
-  { id: 'gitlab', sec: 5, desc: 'Git repositories, CI/CD pipelines and code review.', resources: { small: '2 CPU · 4 Gi', medium: '4 CPU · 8 Gi', heavy: '8 CPU · 16 Gi' } },
-  { id: 'jenkins', sec: 3, desc: 'Automation server for continuous integration.', resources: { small: '1 CPU · 2 Gi', medium: '2 CPU · 4 Gi', heavy: '4 CPU · 8 Gi' } },
-  { id: 'nexus', sec: 4, desc: 'Universal artifact repository and proxy manager.', resources: { small: '2 CPU · 4 Gi', medium: '4 CPU · 8 Gi', heavy: '8 CPU · 16 Gi' } },
-  { id: 'sonarqube', sec: 5, desc: 'Continuous code quality and security vulnerability detection.', resources: { small: '2 CPU · 4 Gi', medium: '4 CPU · 8 Gi', heavy: '8 CPU · 16 Gi' } },
-]
+import servicesCatalog from '@/config/services-catalog.json'
+import type { CatalogService } from '@/lib/types'
+
+const SERVICES = servicesCatalog as CatalogService[]
 
 const INITIAL: WizardState = {
   tenantId: '', displayName: '', businessUnit: '', envType: 'dev', namespace: '', baseUrl: '',
-  services: Object.fromEntries(SERVICES.map(s => [s.id, { enabled: true, replicas: 1, size: 'medium' as SizeType }])),
+  services: Object.fromEntries(
+    SERVICES.map(s => [
+      s.id,
+      {
+        enabled: s.defaultEnabled ?? true,
+        replicas: s.defaultReplicas || 1,
+        size: (s.defaultSize as SizeType) || 'medium'
+      }
+    ])
+  ),
   developers: [],
 }
 
@@ -155,8 +162,8 @@ function calculateCost(cfg: ServiceConfig) {
 
 function Step2({ state, onToggle }: { state: WizardState; onToggle: (id: string, v: boolean) => void }) {
   const { t } = useT()
-  const enabledCount = SERVICES.filter(s => state.services[s.id].enabled).length
-  const totalCost = SERVICES.filter(s => state.services[s.id].enabled).reduce((a, s) => a + calculateCost(state.services[s.id]), 0)
+  const enabledCount = SERVICES.filter(s => state.services[s.id]?.enabled).length
+  const totalCost = SERVICES.filter(s => state.services[s.id]?.enabled).reduce((a, s) => a + (state.services[s.id] ? calculateCost(state.services[s.id]) : 0), 0)
 
   return (
     <div className="space-y-4">
@@ -174,7 +181,7 @@ function Step2({ state, onToggle }: { state: WizardState; onToggle: (id: string,
       <div className="grid gap-3 sm:grid-cols-2">
         {SERVICES.map(svc => {
           const meta = SERVICE_META[svc.id]
-          const enabled = state.services[svc.id].enabled
+          const enabled = state.services[svc.id]?.enabled ?? false
 
           return (
             <div
@@ -190,29 +197,29 @@ function Step2({ state, onToggle }: { state: WizardState; onToggle: (id: string,
                 <Switch checked={enabled} onCheckedChange={v => onToggle(svc.id, v)} onClick={e => e.stopPropagation()} />
               </div>
 
-              <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{meta.name}</p>
-              <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 leading-relaxed">{t(`service.${svc.id}.desc` as any)}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{meta?.name || svc.name}</p>
+              <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 leading-relaxed">{t(`service.${svc.id}.desc` as any) || svc.desc}</p>
 
               <div className="mt-4 grid grid-cols-3 gap-3 border-t border-gray-200 dark:border-dark-border pt-3">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">{t('createTenant.scaling')}</p>
                   <p className="text-xs font-bold text-gray-900 dark:text-slate-100 mt-0.5">
                     {t('createTenant.replicasText')
-                      .replace('{count}', String(state.services[svc.id].replicas))
-                      .replace('{plural}', state.services[svc.id].replicas > 1 ? 's' : '')}
+                      .replace('{count}', String(state.services[svc.id]?.replicas || 1))
+                      .replace('{plural}', (state.services[svc.id]?.replicas || 1) > 1 ? 's' : '')}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">{t('createTenant.security')}</p>
                   <div className="mt-0.5 flex">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={9} className={i < svc.sec ? 'text-brand-teal fill-brand-teal' : 'text-gray-200 fill-gray-200'} />
+                      <Star key={i} size={9} className={i < (svc.securityRating || (svc as any).sec || 5) ? 'text-brand-teal fill-brand-teal' : 'text-gray-200 fill-gray-200'} />
                     ))}
                   </div>
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">{t('createTenant.cost')}</p>
-                  <p className="text-xs font-bold text-gray-900 dark:text-slate-100 mt-0.5">${calculateCost(state.services[svc.id])}/mo</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-slate-100 mt-0.5">${state.services[svc.id] ? calculateCost(state.services[svc.id]) : 0}/mo</p>
                 </div>
               </div>
             </div>
@@ -226,7 +233,7 @@ function Step2({ state, onToggle }: { state: WizardState; onToggle: (id: string,
 // ── Step 3 ──────────────────────────────────────────────────────────────────
 function Step3({ state, onUpdate }: { state: WizardState; onUpdate: (id: string, k: keyof ServiceConfig, v: any) => void }) {
   const { t } = useT()
-  const enabled = SERVICES.filter(s => state.services[s.id].enabled)
+  const enabled = SERVICES.filter(s => state.services[s.id]?.enabled)
   const sizes: SizeType[] = ['small', 'medium', 'heavy']
 
   if (!enabled.length) return (
@@ -244,7 +251,7 @@ function Step3({ state, onUpdate }: { state: WizardState; onUpdate: (id: string,
             <div className="flex items-center gap-3 mb-5">
               <ServiceIcon service={svc.id} size={18} containerSize="w-10 h-10" />
               <div>
-                <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{SERVICE_META[svc.id].name}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{SERVICE_META[svc.id]?.name || svc.name}</p>
                 <p className="text-[11px] text-gray-500 dark:text-slate-500">{t('createTenant.resourceConfig')}</p>
               </div>
             </div>
@@ -265,7 +272,7 @@ function Step3({ state, onUpdate }: { state: WizardState; onUpdate: (id: string,
                     </button>
                   ))}
                 </div>
-                <p className="mt-1.5 text-[11px] text-gray-500 dark:text-slate-500 font-mono">{svc.resources[cfg.size]} - ${SIZE_COST[cfg.size]}/mo per pod</p>
+                <p className="mt-1.5 text-[11px] text-gray-500 dark:text-slate-500 font-mono">{(svc.resources as any)?.[cfg.size] || 'Standard'} - ${SIZE_COST[cfg.size]}/mo per pod</p>
               </div>
 
               <div>
@@ -389,7 +396,8 @@ function buildManifest(state: WizardState): Record<string, unknown> {
     },
     services: Object.fromEntries(
       Object.entries(state.services).map(([id, cfg]) => {
-        const client_id = id === 'gitlab' ? 'Gitlab' : id === 'jenkins' ? 'Jenkins' : id === 'nexus' ? 'nexus' : 'sonarqube'
+        const catSvc = SERVICES.find(s => s.id === id)
+        const client_id = catSvc?.clientId || (id === 'gitlab' ? 'Gitlab' : id === 'jenkins' ? 'Jenkins' : id === 'nexus' ? 'nexus' : id)
         const node_port = cfg.nodePort || cfg.nodePort === 0 ? cfg.nodePort : generatePort()
         return [
           id,

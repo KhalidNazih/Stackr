@@ -36,7 +36,7 @@ export function generateYaml(state: any, creatorEmail?: string): string {
   lines.push(`services:`)
   for (const [svcId, svc] of Object.entries(state.services)) {
     const s = svc as any
-    const clientId = svcId === 'gitlab' ? 'Gitlab' : svcId === 'jenkins' ? 'Jenkins' : svcId === 'nexus' ? 'nexus' : 'sonarqube'
+    const clientId = s.client_id || s.clientId || (svcId === 'gitlab' ? 'Gitlab' : svcId === 'jenkins' ? 'Jenkins' : svcId === 'nexus' ? 'nexus' : svcId)
     const nodePort = s.nodePort || s.node_port || Math.floor(Math.random() * (32767 - 30000 + 1) + 30000)
     lines.push(`  ${svcId}:`)
     lines.push(`    enabled: ${s.enabled}`)
